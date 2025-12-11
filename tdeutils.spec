@@ -1,6 +1,10 @@
-#
-# Please submit bugfixes or comments via http://www.trinitydesktop.org/
-#
+%bcond clang 1
+%bcond gamin 1
+%bcond klaptopdaemon 1
+%bcond xscreensaver 1
+%bcond consolehelper 1
+%bcond superkaramba 1
+%bcond tdefilereplace 1
 
 # BUILD WARNING:
 #  Remove qt-devel and qt3-devel and any kde*-devel on your system !
@@ -10,6 +14,8 @@
 %if "%{?tde_version}" == ""
 %define tde_version 14.1.5
 %endif
+%define pkg_rel 2
+
 %define tde_pkg tdeutils
 %define tde_prefix /opt/trinity
 %define tde_bindir %{tde_prefix}/bin
@@ -25,31 +31,27 @@
 %define tde_tdeincludedir %{tde_includedir}/tde
 %define tde_tdelibdir %{tde_libdir}/trinity
 
-%if 0%{?mdkversion}
 %undefine __brp_remove_la_files
 %define dont_remove_libtool_files 1
 %define _disable_rebuild_configure 1
-%endif
+
+# Avoids relinking, which breaks consolehelper
+%define dont_relink 1
 
 # fixes error: Empty %files file …/debugsourcefiles.list
 %define _debugsource_template %{nil}
 
 %define tarball_name %{tde_pkg}-trinity
-%global toolchain %(readlink /usr/bin/cc)
 
 
 Name:		trinity-%{tde_pkg}
 Summary:	TDE Utilities
 Version:	%{tde_version}
-Release:	%{?!preversion:1}%{?preversion:0_%{preversion}}%{?dist}
+Release:	%{?!preversion:%{pkg_rel}}%{?preversion:0_%{preversion}}%{?dist}
 Group:		Applications/System
 URL:		http://www.trinitydesktop.org/
 
-%if 0%{?suse_version}
-License:	GPL-2.0+
-%else
 License:	GPLv2+
-%endif
 
 #Vendor:		Trinity Project
 #Packager:	Francois Andriot <francois.andriot@free.fr>
@@ -62,7 +64,29 @@ Source2:	klaptop_acpi_helper.console
 Source3:	kcmlaptoprc
 Source4:	%{name}-rpmlintrc
 
-BuildRequires:  cmake make
+BuildSystem:    cmake
+BuildOption:    -DCMAKE_BUILD_TYPE="RelWithDebInfo"
+BuildOption:    -DCMAKE_SKIP_RPATH=OFF
+BuildOption:    -DCMAKE_SKIP_INSTALL_RPATH=OFF
+BuildOption:    -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+BuildOption:    -DCMAKE_INSTALL_RPATH="%{tde_libdir}"
+BuildOption:    -DCMAKE_INSTALL_PREFIX="%{tde_prefix}"
+BuildOption:    -DBIN_INSTALL_DIR="%{tde_bindir}"
+BuildOption:    -DCONFIG_INSTALL_DIR="%{tde_confdir}"
+BuildOption:    -DDOC_INSTALL_DIR="%{tde_docdir}"
+BuildOption:    -DINCLUDE_INSTALL_DIR="%{tde_tdeincludedir}"
+BuildOption:    -DLIB_INSTALL_DIR="%{tde_libdir}"
+BuildOption:    -DPKGCONFIG_INSTALL_DIR="%{tde_libdir}/pkgconfig"
+BuildOption:    -DSHARE_INSTALL_PREFIX="%{tde_datadir}"
+BuildOption:    -DWITH_DPMS=ON -DWITH_ASUS=ON -DWITH_POWERBOOK=OFF
+BuildOption:    -DWITH_POWERBOOK2=OFF -DWITH_VAIO=ON
+BuildOption:    -DWITH_THINKPAD=ON -DWITH_I8K=ON
+BuildOption:    -DWITH_SNMP=ON -DWITH_SENSORS=ON -DWITH_XMMS=ON
+BuildOption:    -DWITH_TDENEWSTUFF=ON -DBUILD_ALL=ON
+%{?with_xscreensaver:BuildOption:    -DWITH_XSCREENSAVER=ON}
+%{?!with_klaptopdaemon:BuildOption:    -DBUILD_KLAPTOPDAEMON=OFF}
+%{?!with_superkaramba:BuildOption:    -DBUILD_SUPERKARAMBA=OFF}
+%{?!with_tdefilereplace:BuildOption:    -DBUILD_TDEFILEREPLACE=OFF}
 
 Obsoletes:	trinity-kdeutils < %{?epoch:%{epoch}:}%{version}-%{release}
 Provides:	trinity-kdeutils = %{?epoch:%{epoch}:}%{version}-%{release}
@@ -76,9 +100,9 @@ BuildRequires:	trinity-tdelibs-devel >= %{tde_version}
 BuildRequires:	trinity-tdebase-devel >= %{tde_version}
 
 BuildRequires:	trinity-tde-cmake >= %{tde_version}
-%if "%{?toolchain}" != "clang"
-BuildRequires:	gcc-c++
-%endif
+
+%{!?with_clang:BuildRequires:	gcc-c++}
+
 BuildRequires:	pkgconfig
 BuildRequires:	fdupes
 
@@ -89,16 +113,6 @@ BuildRequires:	gmp-devel
 # PYTHON support
 BuildRequires:  pkgconfig(python)
 
-# SUSE desktop files utility
-%if 0%{?suse_version}
-BuildRequires:	update-desktop-files
-%endif
-
-%if 0%{?opensuse_bs} && 0%{?suse_version}
-# for xdg-menu script
-BuildRequires:	brp-check-trinity
-%endif
-
 # XTST support
 BuildRequires:  pkgconfig(xtst)
 
@@ -106,50 +120,22 @@ BuildRequires:  pkgconfig(xtst)
 BuildRequires:	pkgconfig(libidn)
 
 # GAMIN support
-#  Not on openSUSE.
-%if 0%{!?suse_version}
-%define with_gamin 1
-BuildRequires:	pkgconfig(gamin)
-%endif
+%{?with_gamin:BuildRequires:	pkgconfig(gamin)}
 
 # PCRE2 support
 BuildRequires:	pkgconfig(libpcre2-posix)
 
-# XMMS support
-#if 0#{?fedora}
-#BuildRequires:	xmms-devel
-#endif
-
-# KLAPTOPDAEMON
-#  Not for RHEL 4!
-%if 0%{?rhel} >= 5 || 0%{?fedora} || 0%{?mgaversion} || 0%{?mdkversion} || 0%{?suse_version}
-%define build_klaptopdaemon 1
-%endif
 
 # ACL support
 BuildRequires:	pkgconfig(libacl)
 
 # XSCREENSAVER support
-#  RHEL 8: available in EPEL
-#  RHEL 9: available in EPEL
-%define with_xscreensaver 1
-BuildRequires:  pkgconfig(xscrnsaver)
+%{?with_xscreensaver:BuildRequires:  pkgconfig(xscrnsaver)}
 
 BuildRequires:  pkgconfig(xrender)
 
 # OPENSSL support
 BuildRequires:  pkgconfig(openssl)
-
-# CONSOLEHELPER (usermode) support
-%if 0%{?rhel} || 0%{?fedora} || 0%{?mgaversion} || 0%{?mdkversion}
-%define with_consolehelper 1
-
-# Avoids relinking, which breaks consolehelper
-%define dont_relink 1
-%endif
-
-%define build_superkaramba 1
-%define build_tdefilereplace 1
 
 Requires: trinity-ark = %{?epoch:%{epoch}:}%{version}-%{release}
 Requires: trinity-kcalc = %{?epoch:%{epoch}:}%{version}-%{release}
@@ -162,17 +148,17 @@ Requires: trinity-kfloppy = %{?epoch:%{epoch}:}%{version}-%{release}
 Requires: trinity-kgpg = %{?epoch:%{epoch}:}%{version}-%{release}
 Requires: trinity-khexedit = %{?epoch:%{epoch}:}%{version}-%{release}
 Requires: trinity-kjots = %{?epoch:%{epoch}:}%{version}-%{release}
-%{?build_klaptopdaemon:Requires: trinity-klaptopdaemon = %{?epoch:%{epoch}:}%{version}-%{release}}
+%{?with_klaptopdaemon:Requires: trinity-klaptopdaemon = %{?epoch:%{epoch}:}%{version}-%{release}}
 Requires: trinity-kmilo = %{?epoch:%{epoch}:}%{version}-%{release}
 Requires: trinity-kmilo-legacy = %{?epoch:%{epoch}:}%{version}-%{release}
 Requires: trinity-kregexpeditor = %{?epoch:%{epoch}:}%{version}-%{release}
 Requires: trinity-ksim = %{?epoch:%{epoch}:}%{version}-%{release}
 Requires: trinity-ktimer = %{?epoch:%{epoch}:}%{version}-%{release}
 Requires: trinity-tdewalletmanager = %{?epoch:%{epoch}:}%{version}-%{release}
-%if 0%{?build_superkaramba}
+%if %{with superkaramba}
 Requires: trinity-superkaramba = %{?epoch:%{epoch}:}%{version}-%{release}
 %endif
-%if 0%{?build_tdefilereplace}
+%if %{with tdefilereplace}
 Requires: trinity-tdefilereplace = %{?epoch:%{epoch}:}%{version}-%{release}
 %endif
 
@@ -189,7 +175,7 @@ Utilities for the Trinity Desktop Environment, including:
 * kgpg (gpg gui)
 * khexedit (hex editor)
 * kjots (note taker)
-%if 0%{?build_klaptopdaemon}
+%if %{with klaptopdaemon}
 * klaptopdaemon (battery monitoring and management for laptops);
 %endif
 * kmilo
@@ -522,21 +508,16 @@ program included in the tkgoodstuff package.
 
 ##########
 
-%if 0%{?build_klaptopdaemon}
+%if %{with klaptopdaemon}
 
 %package -n trinity-klaptopdaemon
 Summary:	Battery monitoring and management for laptops using Trinity
 Group:		Applications/Utilities
 Requires:	trinity-kcontrol
 
-%if 0%{?with_consolehelper}
+%if %{with consolehelper}
 # package 'usermode' provides '/usr/bin/consolehelper-gtk'
-%if 0%{?rhel} || 0%{?fedora}
-Requires:	usermode-gtk
-%endif
-%if 0%{?mgaversion} || 0%{?mdkversion}
 Requires:	usermode
-%endif
 %endif
 
 %description -n trinity-klaptopdaemon
@@ -565,7 +546,7 @@ power management, for laptops, from within TDE.
 %{tde_tdedocdir}/HTML/en/kcontrol/powerctrl/
 
 # ConsoleHelper support
-%if 0%{?with_consolehelper}
+%if %{with consolehelper}
 %{_sysconfdir}/pam.d/klaptop_acpi_helper
 %attr(644,root,root) %{_sysconfdir}/security/console.apps/klaptop_acpi_helper
 %{tde_sbindir}/klaptop_acpi_helper
@@ -736,7 +717,7 @@ keeps a master password to all wallets.
 
 ##########
 
-%if 0%{?build_superkaramba}
+%if %{with superkaramba}
 
 %package -n trinity-superkaramba
 Summary:	A program based on karamba improving the eyecandy of TDE
@@ -771,7 +752,7 @@ Here are just some examples of the things that can be done:
 
 ##########
 
-%if 0%{?build_tdefilereplace}
+%if %{with tdefilereplace}
 
 %package -n trinity-tdefilereplace
 Summary:	Batch search-and-replace component for TDE
@@ -825,7 +806,7 @@ This package contains the development files for tdeutils.
 %files devel
 %defattr(-,root,root,-)
 %{tde_tdeincludedir}/*
-%if 0%{?build_klaptopdaemon}
+%if %{with klaptopdaemon}
 %{tde_libdir}/libkcmlaptop.la
 %{tde_libdir}/libkcmlaptop.so
 %endif
@@ -843,94 +824,16 @@ This package contains the development files for tdeutils.
 %{tde_libdir}/libkhexeditcommon.so
 %{tde_datadir}/cmake/libksimcore.cmake
 
-##########
-
-%if 0%{?suse_version} && 0%{?opensuse_bs} == 0
-%debug_package
-%endif
-
-##########
-
-%prep
-%autosetup -n %{tarball_name}-%{version}%{?preversion:~%{preversion}}
-
-%if 0%{?rhel} == 5 && 0%{?build_superkaramba}
-# Reverts some older Python stuff
-%__sed -i "superkaramba/src/"*".cpp" \
-       -e "s|PyBytes_CheckExact|PyString_CheckExact|g" \
-       -e "s|PyBytes_AsString|PyString_AsString|g" \
-       -e "s|PyBytes_FromString|PyString_FromString|g" \
-%endif
-
-
-%build
+%conf -p
 unset QTDIR QTINC QTLIB
 export PATH="%{tde_bindir}:${PATH}"
 export PKG_CONFIG_PATH="%{tde_libdir}/pkgconfig"
 
-# Shitty hack for RHEL4 ...
-if [ -d "/usr/X11R6" ]; then
-  export CMAKE_INCLUDE_PATH="${CMAKE_INCLUDE_PATH}:/usr/X11R6/include:/usr/X11R6/%{_lib}"
-  export RPM_OPT_FLAGS="${RPM_OPT_FLAGS} -I/usr/X11R6/include -L/usr/X11R6/%{_lib}"
-fi
+%install -a
 
-if ! rpm -E %%cmake|grep -e 'cd build\|cd ${CMAKE_BUILD_DIR:-build}'; then
-  %__mkdir_p build
-  cd build
-fi
-
-%cmake \
-  -DCMAKE_BUILD_TYPE="RelWithDebInfo" \
-  -DCMAKE_C_FLAGS="${RPM_OPT_FLAGS}" \
-  -DCMAKE_CXX_FLAGS="${RPM_OPT_FLAGS}" \
-  -DCMAKE_SKIP_RPATH=OFF \
-  -DCMAKE_SKIP_INSTALL_RPATH=OFF \
-  -DCMAKE_INSTALL_RPATH="%{tde_libdir}" \
-  -DCMAKE_VERBOSE_MAKEFILE=ON \
-  -DWITH_GCC_VISIBILITY=OFF \
-  \
-  -DCMAKE_INSTALL_PREFIX="%{tde_prefix}" \
-  -DBIN_INSTALL_DIR="%{tde_bindir}" \
-  -DCONFIG_INSTALL_DIR="%{tde_confdir}" \
-  -DDOC_INSTALL_DIR="%{tde_docdir}" \
-  -DINCLUDE_INSTALL_DIR="%{tde_tdeincludedir}" \
-  -DLIB_INSTALL_DIR="%{tde_libdir}" \
-  -DPKGCONFIG_INSTALL_DIR="%{tde_libdir}/pkgconfig" \
-  -DSHARE_INSTALL_PREFIX="%{tde_datadir}" \
-  \
-%if 0%{?fedora} == 39
-  -DPYTHON_LIBRARY="%{_libdir}/libpython3.11.so.1.0" \
-  -DPYTHON_INCLUDE_DIR="%{_includedir}/python3.11" \
-%endif
-  \
-  -DWITH_DPMS=ON \
-  %{?with_xscreensaver:-DWITH_XSCREENSAVER=ON} \
-  -DWITH_ASUS=ON \
-  -DWITH_POWERBOOK=OFF \
-  -DWITH_POWERBOOK2=OFF \
-  -DWITH_VAIO=ON \
-  -DWITH_THINKPAD=ON \
-  -DWITH_I8K=ON \
-  -DWITH_SNMP=ON \
-  -DWITH_SENSORS=ON \
-  -DWITH_XMMS=ON \
-  -DWITH_TDENEWSTUFF=ON \
-  -DBUILD_ALL=ON \
-  %{?!build_klaptopdaemon:-DBUILD_KLAPTOPDAEMON=OFF} \
-  %{?!build_superkaramba:-DBUILD_SUPERKARAMBA=OFF} \
-  %{?!build_tdefilereplace:-DBUILD_TDEFILEREPLACE=OFF} \
-  ..
-   
-%__make %{?_smp_mflags} || %__make
-
-
-%install
-export PATH="%{tde_bindir}:${PATH}"
-%__make install DESTDIR=%{?buildroot} -C build
-
-%if 0%{?build_klaptopdaemon}
+%if %{?with_klaptopdaemon}
 ### Use consolehelper for 'klaptop_acpi_helper'
-%if 0%{?with_consolehelper}
+%if %{?with_consolehelper}
 # Install configuration files
 %__install -p -D -m 644 "%{SOURCE1}" "%{buildroot}%{_sysconfdir}/pam.d/klaptop_acpi_helper"
 %__install -p -D -m 644 "%{SOURCE2}" "%{buildroot}%{_sysconfdir}/security/console.apps/klaptop_acpi_helper"
@@ -961,40 +864,11 @@ export PATH="%{tde_bindir}:${PATH}"
 # Fix desktop shortcut location
 if [ -d "%{?buildroot}%{tde_datadir}/applnk" ]; then
   %__mkdir_p "%{?buildroot}%{tde_tdeappdir}"
-%if 0%{?build_superkaramba}
+%if %{with_superkaramba}
   %__mv "%{?buildroot}%{tde_datadir}/applnk/Utilities/superkaramba.desktop" "%{?buildroot}%{tde_tdeappdir}/superkaramba.desktop"
 %endif
   %__rm -rf "%{?buildroot}%{tde_datadir}/applnk"
 fi
-
-# Updates applications categories for openSUSE
-%if 0%{?suse_version}
-%suse_update_desktop_file KEdit              Utility TextEditor
-%if 0%{?build_superkaramba}
-%suse_update_desktop_file superkaramba       Utility DesktopUtility
-%endif
-%suse_update_desktop_file KCharSelect        Utility Accessibility
-%suse_update_desktop_file khexedit           Utility Editor
-%suse_update_desktop_file Kjots              Utility TimeUtility
-%suse_update_desktop_file ktimer             Utility TimeUtility
-%suse_update_desktop_file kwikdisk           System  Applet
-%suse_update_desktop_file kdf                System  Filesystem
-%suse_update_desktop_file ark                System  Archiving
-%suse_update_desktop_file kcalc              Utility Calculator
-%suse_update_desktop_file kgpg               Utility Security
-%suse_update_desktop_file irkick             Applet
-%suse_update_desktop_file tdewalletmanager   Applet
-%suse_update_desktop_file kregexpeditor      Utility Editor
-%suse_update_desktop_file kcmdf
-%suse_update_desktop_file kcmlirc
-%suse_update_desktop_file tdewalletconfig
-%suse_update_desktop_file thinkpad
-%suse_update_desktop_file kvaio
-%suse_update_desktop_file KFloppy            System  Filesystem
-%if 0%{?build_tdefilereplace}
-%suse_update_desktop_file -r tdefilereplace   System      FileManager
-%endif
-%endif
 
 # Icons from TDE Control Center should only be displayed in TDE
 for i in %{?buildroot}%{tde_tdeappdir}/*.desktop ; do
