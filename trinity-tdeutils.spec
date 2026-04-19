@@ -11,11 +11,6 @@
 #  Having KDE libraries may cause FTBFS here !
 
 # TDE variables
-%if "%{?tde_version}" == ""
-%define tde_version 14.1.5
-%endif
-%define pkg_rel 4
-
 %define tde_pkg tdeutils
 %define tde_prefix /opt/trinity
 
@@ -34,15 +29,15 @@
 
 Name:		trinity-%{tde_pkg}
 Summary:	TDE Utilities
-Version:	%{tde_version}
-Release:	%{?!preversion:%{pkg_rel}}%{?preversion:0_%{preversion}}%{?dist}
+Version:	14.1.5
+Release:	5
 Group:		Applications/System
 URL:		http://www.trinitydesktop.org/
 
 License:	GPLv2+
 
 
-Source0:	https://mirror.ppa.trinitydesktop.org/trinity/releases/R%{tde_version}/main/core/%{tarball_name}-%{version}%{?preversion:~%{preversion}}.tar.xz
+Source0:	https://mirror.ppa.trinitydesktop.org/trinity/releases/R%{version}/main/core/%{tarball_name}-%{version}.tar.xz
 Source1:	klaptop_acpi_helper.pam
 Source2:	klaptop_acpi_helper.console
 Source3:	kcmlaptoprc
@@ -66,18 +61,18 @@ BuildOption:    -DBUILD_KLAPTOPDAEMON=%{?!with_klaptopdaemon:OFF}%{?with_klaptop
 BuildOption:    -DBUILD_SUPERKARAMBA=%{?!with_superkaramba:OFF}%{?with_superkaramba:ON}
 BuildOption:    -DBUILD_TDEFILEREPLACE=%{?!with_tdefilereplace:OFF}%{?with_tdefilereplace:ON}
 
-Obsoletes:	trinity-kdeutils < %{?epoch:%{epoch}:}%{version}-%{release}
-Provides:	trinity-kdeutils = %{?epoch:%{epoch}:}%{version}-%{release}
-Obsoletes:	trinity-kdeutils-extras < %{?epoch:%{epoch}:}%{version}-%{release}
-Provides:	trinity-kdeutils-extras = %{?epoch:%{epoch}:}%{version}-%{release}
-Obsoletes:	tdeutils < %{?epoch:%{epoch}:}%{version}-%{release}
-Provides:	tdeutils = %{?epoch:%{epoch}:}%{version}-%{release}
+Obsoletes:	trinity-kdeutils < %{EVRD}
+Provides:	trinity-kdeutils = %{EVRD}
+Obsoletes:	trinity-kdeutils-extras < %{EVRD}
+Provides:	trinity-kdeutils-extras = %{EVRD}
+Obsoletes:	tdeutils < %{EVRD}
+Provides:	tdeutils = %{EVRD}
 
-BuildRequires:	trinity-filesystem >= %{tde_version}
-BuildRequires:	trinity-tdelibs-devel >= %{tde_version}
-BuildRequires:	trinity-tdebase-devel >= %{tde_version}
+BuildRequires:	trinity-filesystem >= %{version}
+BuildRequires:	trinity-tdelibs-devel >= %{version}
+BuildRequires:	trinity-tdebase-devel >= %{version}
 
-BuildRequires:	trinity-tde-cmake >= %{tde_version}
+BuildRequires:	trinity-tde-cmake >= %{version}
 
 %{!?with_clang:BuildRequires:	gcc-c++}
 
@@ -115,29 +110,29 @@ BuildRequires:  pkgconfig(xrender)
 # OPENSSL support
 BuildRequires:  pkgconfig(openssl)
 
-Requires: trinity-ark = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-kcalc = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-kcharselect = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-tdelirc = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-tdessh = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-kdf = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-kedit = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-kfloppy = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-kgpg = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-khexedit = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-kjots = %{?epoch:%{epoch}:}%{version}-%{release}
-%{?with_klaptopdaemon:Requires: trinity-klaptopdaemon = %{?epoch:%{epoch}:}%{version}-%{release}}
-Requires: trinity-kmilo = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-kmilo-legacy = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-kregexpeditor = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-ksim = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-ktimer = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-tdewalletmanager = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires: trinity-ark = %{EVRD}
+Requires: trinity-kcalc = %{EVRD}
+Requires: trinity-kcharselect = %{EVRD}
+Requires: trinity-tdelirc = %{EVRD}
+Requires: trinity-tdessh = %{EVRD}
+Requires: trinity-kdf = %{EVRD}
+Requires: trinity-kedit = %{EVRD}
+Requires: trinity-kfloppy = %{EVRD}
+Requires: trinity-kgpg = %{EVRD}
+Requires: trinity-khexedit = %{EVRD}
+Requires: trinity-kjots = %{EVRD}
+%{?with_klaptopdaemon:Requires: trinity-klaptopdaemon = %{EVRD}}
+Requires: trinity-kmilo = %{EVRD}
+Requires: trinity-kmilo-legacy = %{EVRD}
+Requires: trinity-kregexpeditor = %{EVRD}
+Requires: trinity-ksim = %{EVRD}
+Requires: trinity-ktimer = %{EVRD}
+Requires: trinity-tdewalletmanager = %{EVRD}
 %if %{with superkaramba}
-Requires: trinity-superkaramba = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires: trinity-superkaramba = %{EVRD}
 %endif
 %if %{with tdefilereplace}
-Requires: trinity-tdefilereplace = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires: trinity-tdefilereplace = %{EVRD}
 %endif
 
 %description
@@ -269,8 +264,8 @@ Summary:	Infrared control for Trinity
 Group:		Applications/Utilities
 Requires:	trinity-filesystem
 
-Obsoletes:	trinity-kdelirc < %{?epoch:%{epoch}:}%{version}-%{release}
-Provides:	trinity-kdelirc = %{?epoch:%{epoch}:}%{version}-%{release}
+Obsoletes:	trinity-kdelirc < %{EVRD}
+Provides:	trinity-kdelirc = %{EVRD}
 
 %description -n trinity-tdelirc
 This is a frontend for the LIRC suite to use infrared devices with TDE.
@@ -314,8 +309,8 @@ Requires:	openssh
 Requires:	openssh-clients
 %endif
 
-Obsoletes:	trinity-kdessh < %{?epoch:%{epoch}:}%{version}-%{release}
-Provides:	trinity-kdessh = %{?epoch:%{epoch}:}%{version}-%{release}
+Obsoletes:	trinity-kdessh < %{EVRD}
+Provides:	trinity-kdessh = %{EVRD}
 
 %description -n trinity-tdessh
 This package contains TDE's frontend for ssh.
@@ -566,7 +561,7 @@ with special keys.
 %package -n trinity-kmilo-legacy
 Summary:	Non-standard plugins for KMilo
 Group:		Applications/Utilities
-Requires:	trinity-kmilo = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires:	trinity-kmilo = %{EVRD}
 Requires:	trinity-kcontrol
 
 %description -n trinity-kmilo-legacy
@@ -671,8 +666,8 @@ command execution.
 Summary:	Wallet manager for Trinity
 Group:		Applications/Utilities
 
-Obsoletes:	trinity-kwalletmanager < %{?epoch:%{epoch}:}%{version}-%{release}
-Provides:	trinity-kwalletmanager = %{?epoch:%{epoch}:}%{version}-%{release}
+Obsoletes:	trinity-kwalletmanager < %{EVRD}
+Provides:	trinity-kwalletmanager = %{EVRD}
 
 %description -n trinity-tdewalletmanager
 This program keeps various wallets for any kind of data that the user can
@@ -736,8 +731,8 @@ Here are just some examples of the things that can be done:
 Summary:	Batch search-and-replace component for TDE
 Group:		Applications/Utilities
 
-Obsoletes:	trinity-kfilereplace < %{?epoch:%{epoch}:}%{version}-%{release}
-Provides:	trinity-kfilereplace = %{?epoch:%{epoch}:}%{version}-%{release}
+Obsoletes:	trinity-kfilereplace < %{EVRD}
+Provides:	trinity-kfilereplace = %{EVRD}
 
 %description -n trinity-tdefilereplace
 TDEFileReplace is an embedded component for TDE that acts as a batch
@@ -770,13 +765,13 @@ This package is part of Trinity, as a component of the TDE utilities module.
 %package devel
 Summary:	Development files for %{name} 
 Group:		Development/Libraries
-Requires:	%{name} = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires:	%{name} = %{EVRD}
 Requires:	trinity-tdelibs-devel
 
-Obsoletes:	trinity-kdeutils-devel < %{?epoch:%{epoch}:}%{version}-%{release}
-Provides:	trinity-kdeutils-devel = %{?epoch:%{epoch}:}%{version}-%{release}
-Obsoletes:	tdeutils-devel < %{?epoch:%{epoch}:}%{version}-%{release}
-Provides:	tdeutils-devel = %{?epoch:%{epoch}:}%{version}-%{release}
+Obsoletes:	trinity-kdeutils-devel < %{EVRD}
+Provides:	trinity-kdeutils-devel = %{EVRD}
+Obsoletes:	tdeutils-devel < %{EVRD}
+Provides:	tdeutils-devel = %{EVRD}
 
 %description devel
 This package contains the development files for tdeutils.
