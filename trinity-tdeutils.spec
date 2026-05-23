@@ -22,15 +22,15 @@
 %define dont_relink 1
 
 # fixes error: Empty %files file …/debugsourcefiles.list
-%define _debugsource_template %{nil}
+%undefine _debugsource_template
 
 %define tarball_name %{tde_pkg}-trinity
 
 
 Name:		trinity-%{tde_pkg}
 Summary:	TDE Utilities
-Version:	14.1.5
-Release:	5
+Version:	14.1.6
+Release:	1
 Group:		Applications/System
 URL:		http://www.trinitydesktop.org/
 
