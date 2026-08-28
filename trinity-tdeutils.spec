@@ -30,7 +30,7 @@
 Name:		trinity-%{tde_pkg}
 Summary:	TDE Utilities
 Version:	14.1.6
-Release:	1
+Release:	2
 Group:		Applications/System
 URL:		http://www.trinitydesktop.org/
 
